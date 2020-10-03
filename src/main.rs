@@ -3,6 +3,9 @@
 // external
 use clap::{App, Arg, SubCommand};
 
+// local
+use tini::Item;
+
 fn main() {
     let app = App::new("tini")
         .version(env!("CARGO_PKG_VERSION"))
