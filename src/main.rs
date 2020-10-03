@@ -2,6 +2,7 @@
 
 // external
 use clap::{App, Arg, SubCommand};
+use walkdir::WalkDir;
 
 // local
 use tini::Item;
@@ -12,7 +13,7 @@ fn main() {
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
         .subcommand(
-            SubCommand::with_name("generate")
+            SubCommand::with_name("index")
                 .about("Generate tinysearch index.")
                 .version(env!("CARGO_PKG_VERSION"))
                 .author(env!("CARGO_PKG_AUTHORS"))
@@ -20,7 +21,9 @@ fn main() {
         )
         .get_matches();
 
-    if let Some(_v) = app.subcommand_matches("generate") {
-        println!("Called generate.");
+    if let Some(v) = app.subcommand_matches("index") {
+        for entry in WalkDir::new(v.value_of("INPUT").unwrap_or("./")) {
+            println!("{}", entry.unwrap().path().display());
+        }
     }
 }
