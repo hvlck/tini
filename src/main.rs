@@ -5,6 +5,7 @@ use std::io::{BufRead, BufReader, Error, Write};
 // external
 use clap::{App, Arg, SubCommand};
 use scraper::{Html, Selector};
+use serde_json::to_string_pretty;
 use walkdir::WalkDir;
 
 // local
@@ -32,7 +33,7 @@ fn main() {
         .get_matches();
 
     if let Some(v) = app.subcommand_matches("index") {
-        let mut index_items: Vec<Item> = Vec::new();
+        let mut index_items: Vec<String> = Vec::new();
         for entry in WalkDir::new(v.value_of("INPUT").unwrap_or("./")) {
             let file_path = entry.unwrap();
             if file_path
@@ -65,16 +66,25 @@ fn main() {
                     body_text.push_str(element_text[0]);
                 }
 
-                println!(
-                    "{} | Title: {:?} | Text: {:?}",
-                    file_path.path().display(),
-                    title[0],
-                    body_text
-                );
+                let new_item = to_string_pretty(
+                    &Item::new(
+                        title[0],
+                        &format!(
+                            "{}/{}",
+                            v.value_of("base").unwrap(),
+                            file_path.path().strip_prefix("./").unwrap().display()
+                        )[..],
+                        &body_text,
+                    )
+                    .expect("Failed to parse url."),
+                )
+                .expect("Failed to index file.");
+
+                index_items.push(new_item);
             }
         }
 
         let mut output_file = File::create("index.json").expect("Failed to generate index file!");
-        write!(output_file, "{:?}", index_items.as_slice());
+        write!(output_file, "{}", index_items.join("")).unwrap();
     }
 }
