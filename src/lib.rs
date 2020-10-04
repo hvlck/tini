@@ -1,3 +1,7 @@
+// std
+use std::fmt;
+
+// external
 use serde::{Deserialize, Serialize};
 use url::{ParseError, Url};
 
@@ -20,6 +24,20 @@ impl Item {
             url: parsed_url.to_string(),
             body: body.into(),
         })
+    }
+}
+
+impl fmt::Display for Item {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{{
+            title: {},
+            url: {},
+            body: {}
+        }}",
+            self.title, self.url, self.body
+        )
     }
 }
 
