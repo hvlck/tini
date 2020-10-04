@@ -20,7 +20,14 @@ fn main() {
                 .about("Generate tinysearch index.")
                 .version(env!("CARGO_PKG_VERSION"))
                 .author(env!("CARGO_PKG_AUTHORS"))
-                .arg(Arg::with_name("INPUT").help("Directory to index.")),
+                .arg(Arg::with_name("INPUT").help("Directory to index."))
+                .arg(
+                    Arg::with_name("base")
+                        .short("b")
+                        .takes_value(true)
+                        .help("The basic URL to add to all url fields.")
+                        .required(true),
+                ),
         )
         .get_matches();
 
@@ -48,7 +55,22 @@ fn main() {
                     .unwrap()
                     .text()
                     .collect();
-                println!("{} | Title: {:?}", file_path.path().display(), title[0]);
+
+                let body_selector = Selector::parse("body,body *").unwrap();
+                let body_elements: Vec<_> = html.select(&body_selector).collect();
+                let mut body_text = String::new();
+
+                for element in body_elements.iter() {
+                    let element_text: Vec<_> = element.text().collect();
+                    body_text.push_str(element_text[0]);
+                }
+
+                println!(
+                    "{} | Title: {:?} | Text: {:?}",
+                    file_path.path().display(),
+                    title[0],
+                    body_text
+                );
             }
         }
 
