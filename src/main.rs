@@ -63,7 +63,9 @@ fn main() {
 
                 for element in body_elements.iter() {
                     let element_text: Vec<_> = element.text().collect();
-                    body_text.push_str(element_text[0]);
+                    if element_text.len() != 0 {
+                        body_text.push_str(element_text[0]);
+                    }
                 }
 
                 let new_item = to_string_pretty(
