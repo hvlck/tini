@@ -24,3 +24,4 @@ SUBCOMMANDS:
 + Tests
 + Fix weird URL behaviour
 + Write docs
++ Add support for .gitignore'd files
