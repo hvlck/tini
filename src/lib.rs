@@ -6,9 +6,13 @@ use serde::{Deserialize, Serialize};
 use url::{ParseError, Url};
 
 #[derive(Serialize, Deserialize, Debug)]
+/// Represents an item (page) in the tinysearch index
 pub struct Item {
+    /// The title of the page
     pub title: String,
+    /// The url of the page (base -b arg combined with the route)
     pub url: String,
+    /// The text of the page
     pub body: String,
 }
 
