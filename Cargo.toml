@@ -1,6 +1,6 @@
 [package]
 name = "tini"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["EthanJustice <47954690+EthanJustice@users.noreply.github.com>"]
 edition = "2018"
 readme = "README.md"
@@ -16,3 +16,4 @@ serde_json = "~1.0.58"
 url = "~2.1.1"
 walkdir = "~2.3.1"
 scraper = "~0.12.0"
+rayon = "~1.4.0"
