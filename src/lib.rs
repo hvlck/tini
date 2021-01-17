@@ -26,11 +26,11 @@ pub struct Item {
     /// The url of the page (base -b arg combined with the route)
     pub url: String,
     /// The text of the page
-    pub body: String,
+    pub body: Option<String>,
 }
 
 impl Item {
-    pub fn new<T>(title: T, url: &str, body: T) -> Result<Item, ParseError>
+    pub fn new<T>(title: T, url: &str, body: Option<String>) -> Result<Item, ParseError>
     where
         T: Into<String>,
     {
@@ -39,13 +39,18 @@ impl Item {
         Ok(Item {
             title: title.into(),
             url: parsed_url.to_string(),
-            body: body.into(),
+            body,
         })
     }
 }
 
 impl fmt::Display for Item {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let body = match &self.body {
+            Some(value) => value.clone(),
+            None => "".to_string(),
+        };
+
         write!(
             f,
             "{{
@@ -53,12 +58,12 @@ impl fmt::Display for Item {
             url: {},
             body: {}
         }}",
-            self.title, self.url, self.body
+            self.title, self.url, body
         )
     }
 }
 
-pub fn index(input: &str, base: &str) -> Result<(), std::io::Error> {
+pub fn index(input: &str, base: &str, ignore_body: bool) -> Result<(), std::io::Error> {
     let file_index: Vec<_> = WalkDir::new(input).into_iter().collect();
     let file_index_len = file_index.len();
 
@@ -91,15 +96,17 @@ pub fn index(input: &str, base: &str) -> Result<(), std::io::Error> {
                     .text()
                     .collect();
 
-                let body_selector =
-                    Selector::parse("body,body *").expect("Failed to read HTML body, aborting...");
-                let body_elements: Vec<_> = html.select(&body_selector).collect();
                 let mut body_text = String::new();
+                if ignore_body == false {
+                    let body_selector = Selector::parse("body,body *")
+                        .expect("Failed to read HTML body, aborting...");
+                    let body_elements: Vec<_> = html.select(&body_selector).collect();
 
-                for element in body_elements.iter() {
-                    let element_text: Vec<_> = element.text().collect();
-                    if element_text.len() != 0 {
-                        body_text.push_str(element_text[0]);
+                    for element in body_elements.iter() {
+                        let element_text: Vec<_> = element.text().collect();
+                        if element_text.len() != 0 {
+                            body_text.push_str(element_text[0]);
+                        }
                     }
                 }
 
@@ -115,7 +122,10 @@ pub fn index(input: &str, base: &str) -> Result<(), std::io::Error> {
                                 .unwrap_or(file_path.path())
                                 .display()
                         )[..],
-                        &body_text,
+                        match body_text.len() {
+                            0 => None,
+                            _ => Some(body_text),
+                        },
                     )
                     .expect("Failed to parse URL."),
                 )
@@ -151,7 +161,7 @@ mod tests {
     use std::path::Path;
     #[test]
     fn test_new_item() {
-        assert_eq!(Item::new("Example Title", "https://example.com/route", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.").unwrap().url, "https://example.com/route");
+        assert_eq!(Item::new("Example Title", "https://example.com/route", Some("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.".to_string())).unwrap().url, "https://example.com/route");
     }
 
     #[test]
@@ -181,7 +191,7 @@ mod tests {
             .unwrap();
         }
 
-        index("index_tests/", "https://example.com").unwrap();
+        index("index_tests/", "https://example.com", true).unwrap();
         remove_dir_all("index_tests/").unwrap();
     }
 }

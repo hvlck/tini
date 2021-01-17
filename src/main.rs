@@ -25,6 +25,8 @@ fn main() {
                         .takes_value(true)
                         .help("The basic URL to add to all url fields.")
                         .required(true),
+                ).arg(
+                    Arg::with_name("ignore-body").short("i").long("ignore-body").help("If passed, the body of the file will not be included in the final tinysearch index.").required(false).takes_value(false)
                 ),
         )
         .get_matches();
@@ -35,6 +37,7 @@ fn main() {
         index(
             v.value_of("INPUT").unwrap_or("./"),
             v.value_of("base").expect("Failed to provide a base URL."),
+            v.is_present("ignore-body"),
         )
         .expect("Failed to write to index file, aborting...");
 
